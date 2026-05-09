@@ -1,0 +1,6 @@
+classes/
+outputs/
+libs/
+*.class
+*.ior
+orb.db/
