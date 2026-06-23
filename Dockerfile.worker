@@ -1,5 +1,5 @@
-# ── Dockerfile (Gateway HTTP) ──────────────────────────────────────────
-# Service public : PDFHttpGateway   (port 8080 → Render)
+# ── Dockerfile.worker ──────────────────────────────────────────────────
+# Service CORBA : PDFWorkerServer  (pas exposé publiquement)
 # ──────────────────────────────────────────────────────────────────────
 
 FROM eclipse-temurin:11-jdk
@@ -23,26 +23,25 @@ RUN mkdir -p libs && \
     curl -sL https://repo1.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar \
          -o libs/javax.servlet-api-3.1.0.jar
 
-# Copier sources + UI
+# Copier sources
 COPY idl/ idl/
 COPY src/ src/
-COPY static/ static/
 
 # Générer les stubs CORBA + compiler
 RUN idlj -fall -td src idl/PDFService.idl && \
     javac -cp "libs/*" \
       src/PDFForge/*.java \
-      src/server/PDFHttpGateway.java \
+      src/corba/PDFWorkerImpl.java \
+      src/corba/PDFWorkerServer.java \
       src/MultipartData.java \
       -d classes
 
-RUN mkdir -p outputs
+# Variables d'environnement (overridables sur Render)
+ENV CORBA_NS_HOST=localhost \
+    CORBA_NS_PORT=1050 \
+    CORBA_WORKER_HOST=0.0.0.0 \
+    CORBA_WORKER_PORT=1060
 
-# Variables d'environnement (à setter dans Render dashboard)
-ENV PORT=8080 \
-    CORBA_NS_HOST=localhost \
-    CORBA_NS_PORT=1050
+EXPOSE 1060
 
-EXPOSE 8080
-
-CMD ["java", "-cp", "classes:libs/*", "PDFHttpGateway"]
+CMD ["java", "-cp", "classes:libs/*", "PDFWorkerServer"]
