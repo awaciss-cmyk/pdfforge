@@ -1,21 +1,11 @@
-# ── Dockerfile.render ─────────────────────────────────────────────────
-# Tout-en-un pour Render.com :
-#   1. orbd  (Name Service CORBA)
-#   2. PDFWorkerServer  (Worker CORBA)
-#   3. PDFHttpGateway   (API + UI web)
-# ──────────────────────────────────────────────────────────────────────
-
 FROM eclipse-temurin:8-jdk
-
 WORKDIR /app
 
-# Polices Unicode pour PDFBox
 RUN apt-get update && apt-get install -y \
     fonts-dejavu-core \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
-# Dépendances Java
 RUN mkdir -p libs && \
     curl -sL https://archive.apache.org/dist/pdfbox/2.0.31/pdfbox-app-2.0.31.jar \
          -o libs/pdfbox-app-2.0.31.jar && \
@@ -26,29 +16,25 @@ RUN mkdir -p libs && \
     curl -sL https://repo1.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar \
          -o libs/javax.servlet-api-3.1.0.jar
 
-# Copier les sources
 COPY idl/ idl/
 COPY src/ src/
 COPY static/ static/
 COPY start.sh .
 
-# Générer stubs CORBA + compiler tout
-RUN idlj -fall -td src idl/PDFService.idl && \
+RUN mkdir -p src/PDFForge classes outputs && \
+    idlj -fall -td src idl/PDFService.idl && \
     javac -cp "libs/*" \
       src/PDFForge/*.java \
       src/corba/PDFWorkerImpl.java \
       src/corba/PDFWorkerServer.java \
       src/server/PDFHttpGateway.java \
       src/MultipartData.java \
-      -d classes
+      -d classes && \
+    chmod +x start.sh
 
-RUN mkdir -p outputs && chmod +x start.sh
-
-# Render impose PORT=10000 ; CORBA reste en local (localhost)
 ENV PORT=10000 \
     CORBA_NS_HOST=localhost \
     CORBA_NS_PORT=1050
 
 EXPOSE 10000
-
 CMD ["./start.sh"]
