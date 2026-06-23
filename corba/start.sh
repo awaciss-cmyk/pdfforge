@@ -1,29 +1,20 @@
 #!/bin/bash
-# ============================================================
-# start.sh — Démarrage séquentiel pour Render.com
-# Lance : orbd → PDFWorkerServer → PDFHttpGateway
-# ============================================================
 set -e
 
 LIBS="classes:libs/*"
 
+echo "🔵 [0/3] Nettoyage des anciens process..."
+pkill -f "orbd" 2>/dev/null || true
+pkill -f "PDFWorkerServer" 2>/dev/null || true
+sleep 2
+
 echo "🔵 [1/3] Démarrage du Name Service CORBA (orbd)..."
-orbd -ORBInitialPort 1050 -port 1050 &
-ORBD_PID=$!
-sleep 4
-echo "   orbd PID=$ORBD_PID ✅"
+orbd -ORBInitialPort 1050 -port 1049 &
+sleep 5
 
 echo "🔵 [2/3] Démarrage du PDFWorkerServer CORBA..."
-java -cp "$LIBS" \
-  -Dorg.omg.CORBA.ORBInitialHost=localhost \
-  -Dorg.omg.CORBA.ORBInitialPort=1050 \
-  PDFWorkerServer &
-WORKER_PID=$!
-sleep 6
-echo "   Worker PID=$WORKER_PID ✅"
+java -cp "$LIBS" PDFWorkerServer &
+sleep 8
 
 echo "🔵 [3/3] Démarrage de la Gateway HTTP (port $PORT)..."
-exec java -cp "$LIBS" \
-  -Dorg.omg.CORBA.ORBInitialHost=localhost \
-  -Dorg.omg.CORBA.ORBInitialPort=1050 \
-  PDFHttpGateway
+exec java -cp "$LIBS" PDFHttpGateway
