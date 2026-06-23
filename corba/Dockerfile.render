@@ -5,7 +5,7 @@
 #   3. PDFHttpGateway   (API + UI web)
 # ──────────────────────────────────────────────────────────────────────
 
-FROM eclipse-temurin:11-jdk
+FROM eclipse-temurin:8-jdk
 
 WORKDIR /app
 
