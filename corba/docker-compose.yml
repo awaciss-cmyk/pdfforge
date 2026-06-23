@@ -1,0 +1,60 @@
+version: "3.8"
+
+# ============================================================
+# docker-compose.yml  — PDFForge CORBA (test local)
+# ============================================================
+# Architecture :
+#   nameservice  → orbd CORBA Name Service (port 1050)
+#   worker       → PDFWorkerServer (traitement PDF, port 1060)
+#   gateway      → PDFHttpGateway (interface web, port 8080)
+# ============================================================
+
+services:
+
+  # ── Name Service CORBA ──────────────────────────────────
+  nameservice:
+    image: eclipse-temurin:11-jdk
+    command: orbd -ORBInitialPort 1050 -port 1050
+    ports:
+      - "1050:1050"
+    networks:
+      - corba-net
+    healthcheck:
+      test: ["CMD", "sh", "-c", "echo > /dev/tcp/localhost/1050"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Worker CORBA ────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      CORBA_NS_HOST: nameservice
+      CORBA_NS_PORT: "1050"
+    depends_on:
+      nameservice:
+        condition: service_healthy
+    networks:
+      - corba-net
+
+  # ── Gateway HTTP ────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: "8080"
+      CORBA_NS_HOST: nameservice
+      CORBA_NS_PORT: "1050"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - worker
+    networks:
+      - corba-net
+
+networks:
+  corba-net:
+    driver: bridge

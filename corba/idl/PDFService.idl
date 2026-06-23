@@ -1,0 +1,20 @@
+module PDFForge {
+
+    typedef sequence<octet> Bytes;
+    typedef sequence<Bytes> BytesList;
+
+    interface PDFWorker {
+        Bytes mergePDFs(in Bytes pdf1, in Bytes pdf2);
+        BytesList splitPDF(in Bytes pdf, in long chunkSize);
+        Bytes extractPages(in Bytes pdf, in string pageSpec);
+        Bytes deletePages(in Bytes pdf, in string pageSpec);
+        Bytes protectPDF(in Bytes pdf, in string password);
+        BytesList pdfToImages(in Bytes pdf, in string format);
+        string extractText(in Bytes pdf);
+        Bytes createPDF(in string title, in string content);
+    };
+
+    interface PDFWorkerFactory {
+        PDFWorker getWorker();
+    };
+};

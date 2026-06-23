@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDFForge</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh}
+header{background:#13131a;border-bottom:1px solid #2a2a3a;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:800;font-size:1.4rem}.logo span{color:#ff6b35}
+.hero{text-align:center;padding:4rem 2rem}
+.hero h1{font-size:3rem;font-weight:800;margin-bottom:1rem}
+.hero h1 em{font-style:normal;color:#ff6b35}
+.hero p{color:#7070a0;font-size:1.1rem;max-width:500px;margin:0 auto}
+.tools{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.card{background:#13131a;border:1px solid #2a2a3a;border-radius:16px;padding:1.5rem;cursor:pointer;transition:border-color 0.2s}
+.card:hover{border-color:#ff6b35}
+.card .icon{font-size:2rem;margin-bottom:0.8rem}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:0.4rem}
+.card p{color:#7070a0;font-size:0.83rem;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.overlay.active{opacity:1;pointer-events:all}
+.modal{background:#13131a;border:1px solid #2a2a3a;border-radius:20px;width:100%;max-width:500px;padding:2rem;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.modal-head h2{font-size:1.1rem;font-weight:700}
+.close{background:none;border:none;color:#7070a0;font-size:1.3rem;cursor:pointer}
+label{display:block;font-size:0.83rem;color:#7070a0;margin-bottom:0.4rem;margin-top:1rem}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;background:#0a0a0f;border:1px solid #2a2a3a;border-radius:10px;color:#e8e8f0;padding:0.7rem 1rem;font-family:Arial,sans-serif;font-size:0.9rem;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#ff6b35}
+textarea{resize:vertical;min-height:100px}
+.drop{border:2px dashed #2a2a3a;border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;position:relative;margin-top:0.5rem;background:#0a0a0f}
+.drop:hover{border-color:#ff6b35}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop p{color:#7070a0;font-size:0.85rem}
+.fname{color:#ff6b35;font-size:0.83rem;margin-top:0.3rem}
+.btn{width:100%;padding:0.85rem;background:#ff6b35;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.95rem;cursor:pointer;margin-top:1.2rem}
+.btn:hover{opacity:0.9}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.result{margin-top:1rem;padding:1rem;border-radius:10px;font-size:0.85rem;display:none}
+.result.ok{display:block;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
+.result.er{display:block;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171}
+.result a{color:#ffb347;display:inline-block;margin-top:0.5rem;text-decoration:none;font-weight:600}
+.textout{background:#0a0a0f;border:1px solid #2a2a3a;border-radius:10px;padding:1rem;font-family:monospace;font-size:0.8rem;max-height:180px;overflow-y:auto;white-space:pre-wrap;margin-top:0.8rem;display:none}
+footer{text-align:center;padding:2rem;color:#7070a0;font-size:0.82rem;border-top:1px solid #2a2a3a;margin-top:3rem}
+footer span{color:#ff6b35}
+</style>
+</head>
+<body>
+<header><div class="logo">PDF<span>Forge</span></div></header>
+<div class="hero">
+  <h1>Votre atelier <em>PDF en ligne</em></h1>
+  <p>8 outils puissants pour vos documents PDF</p>
+</div>
+<div class="tools">
+  <div class="card" onclick="open_('fusion')"><div class="icon">🔗</div><h3>Fusion de PDF</h3><p>Combinez deux fichiers PDF en un seul document.</p></div>
+  <div class="card" onclick="open_('decoupage')"><div class="icon">✂️</div><h3>Découpage de PDF</h3><p>Séparez un PDF en plusieurs fichiers distincts.</p></div>
+  <div class="card" onclick="open_('extraction')"><div class="icon">📄</div><h3>Extraction de pages</h3><p>Extrayez des pages spécifiques d'un PDF.</p></div>
+  <div class="card" onclick="open_('suppression')"><div class="icon">🗑️</div><h3>Suppression de pages</h3><p>Supprimez des pages indésirables de votre PDF.</p></div>
+  <div class="card" onclick="open_('motdepasse')"><div class="icon">🔐</div><h3>Mot de passe</h3><p>Protégez votre PDF avec un mot de passe sécurisé.</p></div>
+  <div class="card" onclick="open_('images')"><div class="icon">🖼️</div><h3>PDF → Images</h3><p>Convertissez chaque page PDF en image PNG ou JPEG.</p></div>
+  <div class="card" onclick="open_('texte')"><div class="icon">📝</div><h3>Extraction de texte</h3><p>Extrayez tout le texte contenu dans un PDF.</p></div>
+  <div class="card" onclick="open_('creation')"><div class="icon">✨</div><h3>Création de PDF</h3><p>Créez un nouveau PDF à partir de texte.</p></div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="m-fusion"><div class="modal">
+  <div class="modal-head"><h2>🔗 Fusion de PDF</h2><button class="close" onclick="close_('fusion')">✕</button></div>
+  <label>Premier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('f1',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-f1"></div></div>
+  <label>Deuxième PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('f2',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-f2"></div></div>
+  <button class="btn" onclick="go('fusion')">Fusionner</button>
+  <div class="result" id="r-fusion"></div>
+</div></div>
+
+<div class="overlay" id="m-decoupage"><div class="modal">
+  <div class="modal-head"><h2>✂️ Découpage de PDF</h2><button class="close" onclick="close_('decoupage')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('decoupage',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-decoupage"></div></div>
+  <label>Pages par partie</label><input type="number" id="decoupage-size" value="2" min="1">
+  <button class="btn" onclick="go('decoupage')">Découper</button>
+  <div class="result" id="r-decoupage"></div>
+</div></div>
+
+<div class="overlay" id="m-extraction"><div class="modal">
+  <div class="modal-head"><h2>📄 Extraction de pages</h2><button class="close" onclick="close_('extraction')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('extraction',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-extraction"></div></div>
+  <label>Pages (ex: 1,3,5-8)</label><input type="text" id="extraction-pages" placeholder="1,3,5-8">
+  <button class="btn" onclick="go('extraction')">Extraire</button>
+  <div class="result" id="r-extraction"></div>
+</div></div>
+
+<div class="overlay" id="m-suppression"><div class="modal">
+  <div class="modal-head"><h2>🗑️ Suppression de pages</h2><button class="close" onclick="close_('suppression')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('suppression',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-suppression"></div></div>
+  <label>Pages à supprimer (ex: 2,4)</label><input type="text" id="suppression-pages" placeholder="2,4">
+  <button class="btn" onclick="go('suppression')">Supprimer</button>
+  <div class="result" id="r-suppression"></div>
+</div></div>
+
+<div class="overlay" id="m-motdepasse"><div class="modal">
+  <div class="modal-head"><h2>🔐 Mot de passe</h2><button class="close" onclick="close_('motdepasse')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('motdepasse',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-motdepasse"></div></div>
+  <label>Mot de passe</label><input type="password" id="motdepasse-pwd" placeholder="Mot de passe">
+  <button class="btn" onclick="go('motdepasse')">Protéger</button>
+  <div class="result" id="r-motdepasse"></div>
+</div></div>
+
+<div class="overlay" id="m-images"><div class="modal">
+  <div class="modal-head"><h2>🖼️ PDF → Images</h2><button class="close" onclick="close_('images')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('images',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-images"></div></div>
+  <label>Format</label><select id="images-format"><option value="png">PNG</option><option value="jpeg">JPEG</option></select>
+  <button class="btn" onclick="go('images')">Convertir</button>
+  <div class="result" id="r-images"></div>
+</div></div>
+
+<div class="overlay" id="m-texte"><div class="modal">
+  <div class="modal-head"><h2>📝 Extraction de texte</h2><button class="close" onclick="close_('texte')">✕</button></div>
+  <label>Fichier PDF</label><div class="drop"><input type="file" accept=".pdf" onchange="sf('texte',this)"><p>📂 Cliquez ou glissez un PDF</p><div class="fname" id="fn-texte"></div></div>
+  <button class="btn" onclick="go('texte')">Extraire le texte</button>
+  <div class="result" id="r-texte"></div>
+  <div class="textout" id="to-texte"></div>
+</div></div>
+
+<div class="overlay" id="m-creation"><div class="modal">
+  <div class="modal-head"><h2>✨ Création de PDF</h2><button class="close" onclick="close_('creation')">✕</button></div>
+  <label>Titre</label><input type="text" id="creation-titre" placeholder="Mon document">
+  <label>Contenu</label><textarea id="creation-texte" placeholder="Saisissez votre texte..."></textarea>
+  <button class="btn" onclick="go('creation')">Créer le PDF</button>
+  <div class="result" id="r-creation"></div>
+</div></div>
+
+<footer>PDFForge — Propulsé par <span>Java + PDFBox</span></footer>
+
+<script>
+const API = '';
+const files = {};
+
+function sf(k, input) {
+  const f = input.files[0];
+  if (f) { files[k] = f; document.getElementById('fn-'+k).textContent = '📎 '+f.name; }
+}
+function open_(id) { document.getElementById('m-'+id).classList.add('active'); document.body.style.overflow='hidden'; }
+function close_(id) { document.getElementById('m-'+id).classList.remove('active'); document.body.style.overflow=''; }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o){ o.classList.remove('active'); document.body.style.overflow=''; }});
+});
+
+function showResult(id, ok, msg, url, text) {
+  const el = document.getElementById('r-'+id);
+  el.className = 'result '+(ok?'ok':'er');
+  el.innerHTML = (ok?'✅ ':'❌ ')+msg+(url?'<br><a href="'+url+'" target="_blank" download>⬇ Télécharger</a>':'');
+  if (text) {
+    const to = document.getElementById('to-'+id);
+    if (to) { to.style.display='block'; to.textContent=text; }
+  }
+}
+
+async function go(tool) {
+  const fd = new FormData();
+  const btn = document.querySelector('#m-'+tool+' .btn');
+  btn.disabled = true; btn.textContent = 'Traitement...';
+  try {
+    let endpoint = '';
+    if (tool==='fusion') {
+      if (!files['f1']||!files['f2']) throw new Error('Sélectionnez 2 fichiers PDF.');
+      fd.append('files', files['f1']); fd.append('files', files['f2']); endpoint='/api/merge';
+    } else if (tool==='decoupage') {
+      if (!files['decoupage']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['decoupage']); fd.append('chunk_size', document.getElementById('decoupage-size').value); endpoint='/api/split';
+    } else if (tool==='extraction') {
+      if (!files['extraction']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['extraction']); fd.append('pages', document.getElementById('extraction-pages').value); endpoint='/api/extract-pages';
+    } else if (tool==='suppression') {
+      if (!files['suppression']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['suppression']); fd.append('pages', document.getElementById('suppression-pages').value); endpoint='/api/delete-pages';
+    } else if (tool==='motdepasse') {
+      if (!files['motdepasse']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['motdepasse']); fd.append('password', document.getElementById('motdepasse-pwd').value); endpoint='/api/protect';
+    } else if (tool==='images') {
+      if (!files['images']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['images']); fd.append('format', document.getElementById('images-format').value); endpoint='/api/to-images';
+    } else if (tool==='texte') {
+      if (!files['texte']) throw new Error('Sélectionnez un fichier PDF.');
+      fd.append('file', files['texte']); endpoint='/api/extract-text';
+    } else if (tool==='creation') {
+      fd.append('title', document.getElementById('creation-titre').value||'Document');
+      fd.append('content', document.getElementById('creation-texte').value); endpoint='/api/create-pdf';
+    }
+    const res = await fetch(API+endpoint, {method:'POST', body:fd});
+    const data = await res.json();
+    if (data.success) showResult(tool, true, data.message, data.download_url, data.text);
+    else showResult(tool, false, data.error);
+  } catch(e) { showResult(tool, false, e.message); }
+  finally { btn.disabled=false; btn.textContent = btn.textContent.includes('...') ? 'Envoyer' : btn.textContent; }
+}
+</script>
+</body>
+</html>
